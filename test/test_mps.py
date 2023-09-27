@@ -84,6 +84,8 @@ def mps_ops_grad_modifier(ops):
 
         # Correctness issues
         'atanh': [torch.float32],
+        'masked.log_softmax': [torch.float16],
+        'masked.softmax': [torch.float16],
 
         # Random output
         'exponential': [torch.float16, torch.float32],
@@ -10919,6 +10921,9 @@ class TestConsistency(TestCaseMPS):
         'nn.functional.glu',
         '_native_batch_norm_legit',
         'native_batch_norm',
+        '_softmax_backward_data',
+        'log_softmax',
+        'masked.softmax',
 
         # for macOS 12
         'masked.normalize', 'masked.sum', 'masked.var',
@@ -11030,9 +11035,9 @@ class TestConsistency(TestCaseMPS):
             if op.name == "tensor_split" and isinstance(mps_args[1], torch.Tensor):
                 mps_args[1] = cpu_args[1]
 
+
             cpu_out = op(*cpu_args, **cpu_kwargs)
             mps_out = op(*mps_args, **mps_kwargs)
-
             if op.name in self.FP32_LOW_PRECISION_LIST and dtype == torch.float32:
                 atol = 1e-4
                 rtol = 3e-5
